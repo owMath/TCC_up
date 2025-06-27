@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configurações - Sistema OEE</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #1a73e8;
+            --secondary-color: #4285f4;
+            --text-color: #333;
+            --background-color: #f5f5f5;
+            --card-bg: #ffffff;
+            --border-color: #e0e0e0;
+            --success-color: #0f9d58;
+            --warning-color: #f4b400;
+            --danger-color: #d93025;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            display: flex;
+            background-color: #f5f5f5;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 250px;
+            background-color: var(--primary-color, #1a73e8);
+            color: white;
+            padding: 20px 0;
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-header {
+            padding: 0 20px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar-header h2 {
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+        }
+
+        .menu {
+            padding: 20px 0;
+        }
+
+        .menu-item {
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            text-decoration: none;
+            color: white;
+        }
+        
+        .menu-item a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .menu-item i {
+            margin-right: 10px;
+            font-size: 1.2rem;
+        }
+
+        .menu-item:hover, .menu-item.active {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: 250px;
+            padding: 20px;
+        }
+
+        .page-header {
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .page-header h2 {
+            font-size: 24px;
+            color: #333;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+        }
+
+        .user-name {
+            margin-right: 10px;
+        }
+
+        .logout-btn {
+            background: none;
+            border: none;
+            color: var(--primary-color);
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .config-section {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin: 25px auto; /* Centraliza horizontalmente */
+            max-width: 800px; /* Define uma largura máxima */
+        }
+
+        .config-section h3 {
+            margin-bottom: 15px;
+            color: #0078d7;
+            font-size: 18px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #555;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #0078d7;
+            box-shadow: 0 0 0 2px rgba(0, 120, 215, 0.2);
+        }
+
+        select.form-control {
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23555' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            background-size: 16px;
+            padding-right: 30px;
+        }
+
+        .btn {
+            padding: 10px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background-color 0.3s;
+        }
+
+        .btn-primary {
+            background-color: #0078d7;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #0063b1;
+        }
+
+        .btn-secondary {
+            background-color: #f2f2f2;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background-color: #e5e5e5;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 24px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .toggle-slider {
+            background-color: #0078d7;
+        }
+
+        input:checked + .toggle-slider:before {
+            transform: translateX(26px);
+        }
+
+        .form-row {
+            display: flex;
+            align-items: center;
+            justify-content: center; /* Centraliza os elementos dentro da div */
+            margin-bottom: 10px;
+        }
+        
+        .form-row label {
+            flex: 1;
+            min-width: 180px;
+            text-align: right;
+            padding-right: 15px;
+        }
+        
+        .form-row .form-control {
+            flex: 2;
+            max-width: 400px; /* Limita o tamanho dos inputs para não ficarem muito grandes */
+            width: 100%;
+        }
+
+        .actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 70px;
+                overflow: hidden;
+            }
+            
+            .sidebar-header h2, .sidebar-header p {
+                display: none;
+            }
+            
+            .menu-item span {
+                display: none;
+            }
+            
+            .menu-item {
+                justify-content: center;
+            }
+            
+            .menu-item i {
+                margin-right: 0;
+                font-size: 1.5rem;
+            }
+            
+            .main-content {
+                margin-left: 70px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2>Sistema OEE</h2>
+            <p>Painel de Controle</p>
+        </div>
+        <div class="menu">
+            <a href="dashboard.html" class="menu-item">
+                <i class="fas fa-tachometer-alt"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="maquinas.html" class="menu-item">
+                <i class="fas fa-industry"></i>
+                <span>Máquinas</span>
+            </a>
+            <a href="relatorios.html" class="menu-item">
+                <i class="fas fa-chart-line"></i>
+                <span>Relatórios</span>
+            </a>
+            <a href="logistica.html" class="menu-item">
+                <i class="fas fa-truck"></i>
+                <span>Logística</span>
+            </a>
+            <a href="configuracoes.html" class="menu-item active">
+                <i class="fas fa-cog"></i>
+                <span>Configurações</span>
+            </a>
+            <a href="perfil.html" class="menu-item">
+                <i class="fas fa-user"></i>
+                <span>Perfil</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="page-header">
+            <h2>Configurações do Sistema</h2>
+            <div class="user-info">
+                <span class="user-name" id="user-name">Usuário</span>
+                <button class="logout-btn" id="logout-btn">Sair</button>
+            </div>
+        </div>
+
+        <!-- Configurações Gerais -->
+        <div class="config-section">
+            <h3>Configurações Gerais</h3>
+            
+            <div class="form-row">
+                <label for="company-name">Nome da Empresa:</label>
+                <input type="text" id="company-name" class="form-control" placeholder="Nome da Empresa">
+            </div>
+            
+            <div class="form-row">
+                <label for="timezone">Fuso Horário:</label>
+                <select id="timezone" class="form-control">
+                    <option value="America/Sao_Paulo">America/Sao_Paulo (GMT-3)</option>
+                    <option value="America/Manaus">America/Manaus (GMT-4)</option>
+                    <option value="America/Belem">America/Belem (GMT-3)</option>
+                </select>
+            </div>
+
+            <div class="form-row">
+                <label for="date-format">Formato de Data:</label>
+                <select id="date-format" class="form-control">
+                    <option value="dd-mm-yyyy">DD-MM-YYYY</option>
+                    <option value="mm-dd-yyyy">MM-DD-YYYY</option>
+                    <option value="yyyy-mm-dd">YYYY-MM-DD</option>
+                </select>
+            </div>
+            
+    
+            <div class="form-row">
+                <label>Notificações:</label>
+                <label class="toggle-switch">
+                    <input type="checkbox" checked>
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+
+            <div class="form-row">
+                <label for="report-frequency">Frequência de Relatórios:</label>
+                <select id="report-frequency" class="form-control">
+                    <option value="daily">Diário</option>
+                    <option value="weekly">Semanal</option>
+                    <option value="monthly">Mensal</option>
+                </select>
+            </div>
+            
+
+            <div class="form-row">
+                <label for="unidade-peso">Unidade de Peso:</label>
+                <select id="unidade-peso" class="form-control">
+                    <option value="kg">Quilograma (kg)</option>
+                    <option value="lb">Libra (lb)</option>
+                </select>
+            </div>         
+            
+            <div class="form-row">
+                <label for="unidade-distancia">Unidade de Distância:</label>
+                <select id="unidade-distancia" class="form-control">
+                    <option value="m">Metros (m)</option>
+                    <option value="km">Quilômetros (km)</option>
+                    <option value="ft">Pés (ft)</option>
+                    <option value="mi">Milhas (mi)</option>
+                </select>
+            </div>
+
+            
+            <div class="form-row">
+                <label for="currency">Moeda Padrão:</label>
+                <select id="currency" class="form-control">
+                    <option value="BRL">Real (R$)</option>
+                    <option value="USD">Dólar ($)</option>
+                    <option value="EUR">Euro (€)</option>
+                </select>
+            </div>
+            
+        </div>
+
+        <!-- Configurações OEE -->
+        <div class="config-section">
+            <h3>Configurações de OEE</h3>
+            <div class="form-row">
+                <label>Meta de Disponibilidade:</label>
+                <input type="number" class="form-control" value="85" min="0" max="100" step="0.1" style="width: 80px;"> <span style="margin-left: 5px;">%</span>
+            </div>
+            <div class="form-row">
+                <label>Meta de Performance:</label>
+                <input type="number" class="form-control" value="95" min="0" max="100" step="0.1" style="width: 80px;"> <span style="margin-left: 5px;">%</span>
+            </div>
+            <div class="form-row">
+                <label>Meta de Qualidade:</label>
+                <input type="number" class="form-control" value="99" min="0" max="100" step="0.1" style="width: 80px;"> <span style="margin-left: 5px;">%</span>
+            </div>
+            <div class="form-row">
+                <label>Meta de OEE:</label>
+                <input type="number" class="form-control" value="80" min="0" max="100" step="0.1" style="width: 80px;"> <span style="margin-left: 5px;">%</span>
+            </div>
+        </div>
+
+        <!-- Ações -->
+        <div class="actions">
+            <button class="btn btn-secondary">Cancelar</button>
+            <button class="btn btn-primary">Salvar Configurações</button>
+        </div>
+    </div>
+
+    <script>
+        // Os links na barra lateral agora têm href direto, não precisamos do script para navegação
+
+        // Evento para salvar configurações
+        document.querySelector('.btn-primary').addEventListener('click', function() {
+            const config = {
+                nomeEmpresa: document.getElementById('company-name').value,
+                fusoHorario: document.getElementById('timezone').value,
+                notificacoes: document.querySelector('.toggle-switch input').checked,
+                metaDisponibilidade: document.querySelectorAll('.form-control[type="number"]')[0].value,
+                metaPerformance: document.querySelectorAll('.form-control[type="number"]')[1].value,
+                metaQualidade: document.querySelectorAll('.form-control[type="number"]')[2].value,
+                metaOEE: document.querySelectorAll('.form-control[type="number"]')[3].value,
+                unidadePeso: document.getElementById('unidade-peso').value,
+                unidadeDistancia: document.getElementById('unidade-distancia').value,
+                moedaPadrao: document.getElementById('currency').value,  
+                reportFrequency: document.getElementById('report-frequency').value, 
+                dateFormat: document.getElementById('date-format').value 
+            };
+
+            // Salvar no localStorage e exibir no console para depuração
+            localStorage.setItem('configuracoesSistema', JSON.stringify(config));
+            console.log("Configurações salvas:", config);
+
+            alert('Configurações salvas com sucesso!');
+        });
+
+        // Recuperar e exibir dados salvos ao carregar a página
+        document.addEventListener('DOMContentLoaded', function() {
+            const configSalva = JSON.parse(localStorage.getItem('configuracoesSistema'));
+
+            if (configSalva) {
+                console.log("Configurações carregadas:", configSalva);
+
+                document.getElementById('company-name').value = configSalva.nomeEmpresa || "";
+                document.getElementById('timezone').value = configSalva.fusoHorario || "America/Sao_Paulo";
+                document.querySelector('.toggle-switch input').checked = configSalva.notificacoes || false;
+
+                const inputsMetas = document.querySelectorAll('.form-control[type="number"]');
+                inputsMetas[0].value = configSalva.metaDisponibilidade || 85;
+                inputsMetas[1].value = configSalva.metaPerformance || 95;
+                inputsMetas[2].value = configSalva.metaQualidade || 99;
+                inputsMetas[3].value = configSalva.metaOEE || 80;
+
+                document.getElementById('unidade-peso').value = configSalva.unidadePeso || "kg";
+                document.getElementById('unidade-distancia').value = configSalva.unidadeDistancia || "m";
+                document.getElementById('currency').value = configSalva.moedaPadrao || "BRL";
+                document.getElementById('report-frequency').value = configSalva.reportFrequency || "daily";
+                document.getElementById('date-format').value = configSalva.dateFormat || "dd-mm-yyyy";
+            } else {
+                console.warn("Nenhuma configuração salva encontrada.");
+            }
+        });
+
+
+        
+        // Configurar função de logout
+        document.getElementById('logout-btn').addEventListener('click', function() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = '/'; // Redirecionar para a página de login
+        });
+        
+        // Verificar se existe um nome de usuário armazenado
+        document.addEventListener('DOMContentLoaded', function() {
+            try {
+                const userInfo = JSON.parse(localStorage.getItem('user'));
+                if (userInfo && userInfo.name) {
+                    document.getElementById('user-name').textContent = userInfo.name;
+                }
+            } catch (error) {
+                console.error('Erro ao obter informações do usuário:', error);
+            }
+        });
+    </script>
+</body>
+</html>

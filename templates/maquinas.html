@@ -1,0 +1,1830 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Máquinas - Sistema OEE</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --primary-color: #1976D2;
+            --secondary-color: #1565C0;
+            --text-color: #333;
+            --background-color: #f5f5f5;
+            --card-bg: #ffffff;
+            --border-color: #e0e0e0;
+        }
+        
+        body {
+            display: flex;
+            min-height: 100vh;
+            background-color: #f5f5f5;
+        }
+        
+        /* Sidebar */
+        .sidebar {
+            width: 250px;
+            background-color:#1a73e8;
+            color: white;
+            padding: 20px 0;
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            transition: all 0.3s ease;
+            z-index: 100;
+        }
+
+        .sidebar-header {
+            padding: 0 20px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar-header h2 {
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+        }
+
+        .menu {
+            padding: 20px 0;
+        }
+
+        .menu-item {
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            text-decoration: none;
+            color: white;
+        }
+
+        .menu-item {
+            text-decoration: none;
+            color: white;
+        }
+        
+        .menu-item a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .menu-item i {
+            margin-right: 10px;
+            font-size: 1.2rem;
+        }
+
+        .menu-item:hover, .menu-item.active {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        /* Main Content */
+        .main-content {
+            flex-grow: 1;
+            margin-left: 250px;
+            padding: 20px;
+            box-sizing: border-box;
+            width: calc(100% - 250px); /* Garante que o conteúdo tenha largura correta */
+        }
+        
+        .page-header {
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+        }
+        
+        .page-header h2 {
+            font-size: 24px;
+            color: #333;
+            flex: 1;
+        }
+
+        #reload-btn {
+            margin: 0 auto;
+            flex: 1;
+            max-width: 200px;
+            justify-content: center;
+       }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            margin-left: auto;
+            flex: 1;
+            justify-content: flex-end;
+        }
+        
+        .user-name {
+            margin-right: 10px;
+        }
+        
+        .logout-btn {
+            background: none;
+            border: none;
+            color: var(--primary-color, #1976D2);
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        
+        .action-buttons {
+            display: flex;
+            align-items: center;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .btn-primary {
+            background-color: #1976D2;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #1565C0;
+        }
+        
+        /* Machine cards */
+        .machines-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            width: 100%;
+            margin-top: 20px;
+        }
+        
+        .machine-card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .machine-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+        }
+        
+        .machine-header {
+            padding: 15px;
+            background-color: #f0f0f0;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .machine-header h3 {
+            font-size: 18px;
+            color: #333;
+        }
+        
+        .machine-status {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .status-online {
+            background-color: #E8F5E9;
+            color: #2E7D32;
+        }
+        
+        .status-offline {
+            background-color: #FFEBEE;
+            color: #C62828;
+        }
+        
+        .status-warning {
+            background-color: #FFF8E1;
+            color: #F57F17;
+        }
+        
+        .machine-body {
+            padding: 15px;
+        }
+        
+        .machine-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .stat-item {
+            padding: 10px;
+            background-color: #f5f5f5;
+            border-radius: 4px;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: #757575;
+            margin-bottom: 5px;
+        }
+        
+        .stat-value {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .machine-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .btn-secondary {
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #e0e0e0;
+        }
+        
+        /* Search and filters */
+        .filters-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            width: 100%;
+        }
+        
+        .search-box {
+            display: flex;
+            align-items: center;
+            background-color: #f5f5f5;
+            border-radius: 4px;
+            padding: 0 10px;
+            flex-grow: 1;
+            max-width: 300px;
+        }
+        
+        .search-box input {
+            border: none;
+            padding: 10px;
+            background-color: transparent;
+            flex-grow: 1;
+            outline: none;
+        }
+        
+        .filters-group {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .filter-select {
+            padding: 8px;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            background-color: white;
+            outline: none;
+        }
+
+        .search-section {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-grow: 1;
+        }
+        
+        .add-machine-btn {
+            white-space: nowrap;
+        }
+    </style>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2>Sistema OEE</h2>
+            <p>Painel de Controle</p>
+        </div>
+        <div class="menu">
+            <a href="dashboard.html" class="menu-item">
+                <i class="fas fa-tachometer-alt"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="maquinas.html" class="menu-item active">
+                <i class="fas fa-industry"></i>
+                <span>Máquinas</span>
+            </a>
+            <a href="relatorios.html" class="menu-item">
+                <i class="fas fa-chart-line"></i>
+                <span>Relatórios</span>
+            </a>
+            <a href="logistica.html" class="menu-item">
+              <i class="fas fa-truck"></i>
+              <span>Logística</span>
+          </a>
+            <a href="configuracoes.html" class="menu-item">
+                <i class="fas fa-cog"></i>
+                <span>Configurações</span>
+            </a>
+            <a href="perfil.html" class="menu-item">
+                <i class="fas fa-user"></i>
+                <span>Perfil</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+      <div class="page-header">
+        <h2>Máquinas</h2>
+        <div class="user-info">
+            <span class="user-name" id="user-name">Usuário</span>
+            <button class="logout-btn" id="logout-btn">Sair</button>
+        </div>
+    </div>
+
+        <div class="filters-bar">
+            <div class="search-section">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Buscar máquinas...">
+                </div>
+                <button class="btn btn-primary add-machine-btn">
+                    <i class="fas fa-plus"></i> Adicionar Máquina
+                </button>
+            </div>
+            <div class="filters-group">
+                <select class="filter-select">
+                    <option value="">Status</option>
+                    <option value="online">Online</option>
+                    <option value="offline">Offline</option>
+                    <option value="warning">Alerta</option>
+                </select>
+                <select class="filter-select">
+                    <option value="">Setor</option>
+                    <option value="producao">Produção</option>
+                    <option value="montagem">Montagem</option>
+                    <option value="acabamento">Acabamento</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="machines-grid">
+    <!-- As máquinas serão adicionadas dinamicamente aqui -->
+        </div>
+    </div>
+
+    <script>
+        // Adicionar funcionalidade básica de busca
+        document.querySelector('.search-box input').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const machineCards = document.querySelectorAll('.machine-card');
+            
+            machineCards.forEach(card => {
+                const machineName = card.querySelector('h3').textContent.toLowerCase();
+                if (machineName.includes(searchTerm)) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+        
+        // Adicionar funcionalidade básica de filtro por status
+        document.querySelectorAll('.filter-select').forEach(select => {
+            select.addEventListener('change', function() {
+                const statusFilter = document.querySelectorAll('.filter-select')[0].value;
+                const sectorFilter = document.querySelectorAll('.filter-select')[1].value;
+                const machineCards = document.querySelectorAll('.machine-card');
+                
+                machineCards.forEach(card => {
+                    let showCard = true;
+                    
+                    if (statusFilter) {
+                        const status = card.querySelector('.machine-status').classList[1].replace('status-', '');
+                        if (status !== statusFilter) {
+                            showCard = false;
+                        }
+                    }
+                    
+                    // Aqui seria a lógica para o filtro de setor, mas como não temos essa informação
+                    // explícita nos cards atuais, não estamos implementando esta parte
+                    
+                    card.style.display = showCard ? 'block' : 'none';
+                });
+            });
+        });
+    // Configurar função de logout
+document.getElementById('logout-btn').addEventListener('click', function() {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    window.location.href = '/'; // Redirecionar para a página de login
+});
+
+// Verificar se existe um nome de usuário armazenado
+document.addEventListener('DOMContentLoaded', function() {
+    try {
+        const userInfo = JSON.parse(localStorage.getItem('user'));
+        if (userInfo && userInfo.name) {
+            document.getElementById('user-name').textContent = userInfo.name;
+        }
+    } catch (error) {
+        console.error('Erro ao obter informações do usuário:', error);
+    }
+});
+// Script para carregar máquinas dinamicamente na página de máquinas
+document.addEventListener('DOMContentLoaded', function() {
+    // Dados das máquinas - apenas as três primeiras
+    window.maquinasData = [
+        {
+            id: 1,
+            nome: "Máquina 1",
+            status: "running",
+            setor: "producao", // Adicionando setor diretamente
+            oee: {
+                oee: "82.7%",
+                disponibilidade: "94.5%",
+                performance: "87.2%",
+                qualidade: "98.3%"
+            }
+        },
+        {
+            id: 2,
+            nome: "Máquina 2",
+            status: "idle",
+            setor: "montagem", // Adicionando setor diretamente
+            oee: {
+                oee: "71.2%",
+                disponibilidade: "85.0%",
+                performance: "81.5%",
+                qualidade: "96.8%"
+            }
+        },
+        {
+            id: 3,
+            nome: "Máquina 3",
+            status: "stopped",
+            setor: "acabamento", // Adicionando setor diretamente
+            oee: {
+                oee: "0.0%",
+                disponibilidade: "0.0%",
+                performance: "0.0%",
+                qualidade: "0.0%"
+            }
+        }
+    ];
+
+    // Função para mapear o status para o formato correto da página de máquinas
+    function mapearStatus(status) {
+        switch(status) {
+            case "running":
+                return {
+                    classe: "status-online",
+                    texto: "Online"
+                };
+            case "idle":
+                return {
+                    classe: "status-warning",
+                    texto: "Alerta"
+                };
+            case "stopped":
+                return {
+                    classe: "status-offline",
+                    texto: "Offline"
+                };
+            default:
+                return {
+                    classe: "status-offline",
+                    texto: "Offline"
+                };
+        }
+    }
+
+    // Função para criar os cards de máquinas
+    function criarCardsMaquinas() {
+        const machinesGrid = document.querySelector('.machines-grid');
+        
+        // Limpar o grid atual
+        machinesGrid.innerHTML = '';
+        
+        // Adicionar cada máquina
+        window.maquinasData.forEach(maquina => {
+            const statusMapeado = mapearStatus(maquina.status);
+            
+            const setorTexto = {
+                "producao": "Produção",
+                "montagem": "Montagem",
+                "acabamento": "Acabamento"
+            };
+            
+            const cardHTML = `
+                <div class="machine-card" data-machine-id="${maquina.id}" data-setor="${maquina.setor}">
+                    <div class="machine-header">
+                        <h3>${maquina.nome}
+                        <br><style="font-size: 10px; color: #777;">
+                        ${setorTexto[maquina.setor] || maquina.setor || ''}
+                        </span></h3>
+                        <span class="machine-status ${statusMapeado.classe}">${statusMapeado.texto}</span>
+                    </div>
+                    <div class="machine-body">
+                        <div class="machine-stats">
+                            <div class="stat-item">
+                                <div class="stat-label">OEE</div>
+                                <div class="stat-value">${maquina.oee.oee}</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-label">Disponibilidade</div>
+                                <div class="stat-value">${maquina.oee.disponibilidade}</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-label">Performance</div>
+                                <div class="stat-value">${maquina.oee.performance}</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-label">Qualidade</div>
+                                <div class="stat-value">${maquina.oee.qualidade}</div>
+                            </div>
+                        </div>
+                        <div class="machine-actions">
+                            <button class="btn btn-secondary btn-detalhes" data-id="${maquina.id}">
+                                <i class="fas fa-chart-line"></i> Detalhes
+                            </button>
+                            <button class="btn btn-secondary btn-configurar" data-id="${maquina.id}">
+                                <i class="fas fa-cog"></i> Configurar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            machinesGrid.innerHTML += cardHTML;
+        });
+        
+        // Adicionar eventos aos novos cards
+        adicionarEventosMaquinas();
+        sincronizarComDashboard(window.maquinasData);
+
+    }
+    // Script para corrigir manipuladores de eventos dos botões
+document.addEventListener('DOMContentLoaded', function() {
+    // Delegação de eventos para capturar cliques nos botões
+    document.addEventListener('click', function(e) {
+        // Verificar se o clique foi em um botão de detalhes
+        if (e.target.closest('.btn-detalhes')) {
+            e.stopPropagation(); // Evitar propagar o clique para o card
+            const button = e.target.closest('.btn-detalhes');
+            const machineId = button.getAttribute('data-id');
+            
+            // Exibir detalhes da máquina
+            exibirDetalhesMaquina(machineId);
+        }
+        
+        // Verificar se o clique foi em um botão de configuração
+        if (e.target.closest('.btn-configurar')) {
+            e.stopPropagation(); // Evitar propagar o clique para o card
+            const button = e.target.closest('.btn-configurar');
+            const machineId = button.getAttribute('data-id');
+            
+            // Exibir formulário de configuração
+            exibirFormularioConfiguracao(machineId);
+        }
+    });
+});
+    
+    // Adicionar eventos de clique aos cards de máquinas
+    function adicionarEventosMaquinas() {
+        const machineCards = document.querySelectorAll('.machine-card');
+        
+        machineCards.forEach(card => {
+            // Adicionar efeito de hover e clique
+            card.addEventListener('click', function() {
+                const machineId = this.getAttribute('data-machine-id');
+                console.log(`Clicou na máquina ${machineId}`);
+   
+            });
+            
+            // Adicionar eventos específicos aos botões de ação
+            const btnDetalhes = card.querySelector('.machine-actions button:first-child');
+            const btnConfigurar = card.querySelector('.machine-actions button:last-child');
+            
+            if (btnDetalhes) {
+                btnDetalhes.addEventListener('click', function(e) {
+                    e.stopPropagation(); // Evitar propagar o clique para o card
+                    const machineId = card.getAttribute('data-machine-id');
+                    console.log(`Detalhes da máquina ${machineId}`);
+                });
+            }
+            
+            if (btnConfigurar) {
+                btnConfigurar.addEventListener('click', function(e) {
+                    e.stopPropagation(); // Evitar propagar o clique para o card
+                    const machineId = card.getAttribute('data-machine-id');
+                    console.log(`Configurar máquina ${machineId}`);
+                });
+            }
+        });
+    }
+    
+    // Inicializar a página com as máquinas
+    criarCardsMaquinas();
+    
+    // Adicionar botão de simulação para testes
+    function adicionarBotaoSimulacao() {
+        const header = document.querySelector('.page-header');
+        
+        if (header) {
+            const btnSimular = document.createElement('button');
+            btnSimular.className = 'btn btn-primary';
+            btnSimular.style.marginLeft = '10px';
+            btnSimular.innerHTML = '<i class="fas fa-sync"></i> Simular Atualização';
+            
+            btnSimular.addEventListener('click', function() {
+                // Simular mudanças aleatórias nas máquinas
+                maquinasData.forEach(maquina => {
+                    // 30% de chance de mudar o status
+                    if (Math.random() < 0.3) {
+                        const statusOptions = ["running", "idle", "stopped"];
+                        maquina.status = statusOptions[Math.floor(Math.random() * statusOptions.length)];
+                    }
+                    
+                    // Atualizar OEE e métricas com pequenas variações
+                    if (maquina.status !== "stopped") {
+                        const oeeValue = parseFloat(maquina.oee.oee);
+                        const dispValue = parseFloat(maquina.oee.disponibilidade);
+                        const perfValue = parseFloat(maquina.oee.performance);
+                        const qualValue = parseFloat(maquina.oee.qualidade);
+                        
+                        maquina.oee.oee = (oeeValue + (Math.random() * 4 - 2)).toFixed(1) + "%";
+                        maquina.oee.disponibilidade = (dispValue + (Math.random() * 3 - 1.5)).toFixed(1) + "%";
+                        maquina.oee.performance = (perfValue + (Math.random() * 3 - 1.5)).toFixed(1) + "%";
+                        maquina.oee.qualidade = (qualValue + (Math.random() * 2 - 1)).toFixed(1) + "%";
+                    }
+                });
+                
+                // Recriar os cards com os dados atualizados
+                criarCardsMaquinas();
+                console.log("Dados das máquinas atualizados");
+            });
+            
+            // Adicionar o botão ao header, após o título
+            const titulo = header.querySelector('h2');
+            if (titulo) {
+                titulo.parentNode.insertBefore(btnSimular, titulo.nextSibling);
+            } else {
+                header.appendChild(btnSimular);
+            }
+        }
+    }
+    
+    // Adicionar botão de simulação para testes
+    adicionarBotaoSimulacao();
+});
+// Script para estender as funcionalidades da página de máquinas
+document.addEventListener('DOMContentLoaded', function() {
+    // Referência ao array de máquinas
+    let maquinasDataRef = null;
+  
+    // Função para obter referência ao array de máquinas já existente
+    function obterReferenciaMaquinas() {
+      // Se já temos a referência, retorná-la
+      return window.maquinasData;
+      
+      // Procurar pela variável maquinasData no escopo global (window)
+      if (window.maquinasData) {
+        maquinasDataRef = window.maquinasData;
+        return maquinasDataRef;
+      }
+      
+      // Última tentativa: acessar a variável por meio de uma função auxiliar
+      if (typeof criarCardsMaquinas === 'function') {
+        try {
+          // Tentar executar a função para obter referência
+          maquinasDataRef = window.maquinasData;
+          return maquinasDataRef;
+        } catch(e) {
+          console.error('Não foi possível obter referência ao array de máquinas:', e);
+          return null;
+        }
+      }
+      
+      console.error('Referência ao array de máquinas não encontrada');
+      return null;
+    }
+    
+    // Adicionar setores às máquinas existentes
+    function adicionarSetores() {
+      const maquinas = obterReferenciaMaquinas();
+      if (!maquinas) return;
+      
+      // Adicionar atributo setor às máquinas existentes
+      maquinas.forEach((maquina, index) => {
+        if (!maquina.setor) {
+          // Distribuir setores entre as máquinas de forma lógica
+          switch (index % 3) {
+            case 0:
+              maquina.setor = "producao";
+              break;
+            case 1:
+              maquina.setor = "montagem";
+              break;
+            case 2:
+              maquina.setor = "acabamento";
+              break;
+          }
+        }
+      });
+      
+      // Atualizar HTML para mostrar o setor em cada máquina
+      atualizarHtmlComSetores();
+    }
+    
+    // Atualizar HTML para mostrar o setor
+    function atualizarHtmlComSetores() {
+      const maquinas = obterReferenciaMaquinas();
+      if (!maquinas) return;
+      
+      const cards = document.querySelectorAll('.machine-card');
+      
+      cards.forEach((card, index) => {
+        if (index < maquinas.length) {
+          const maquina = maquinas[index];
+          
+          // Adicionar atributo data-setor ao card
+          card.setAttribute('data-setor', maquina.setor);
+          
+          // Adicionar elemento visual do setor no header (opcional)
+          const header = card.querySelector('.machine-header');
+          if (header) {
+            const setorTexto = {
+              "producao": "Produção",
+              "montagem": "Montagem",
+              "acabamento": "Acabamento"
+            };
+            
+            const setorSpan = document.createElement('span');
+            setorSpan.className = 'machine-sector';
+            setorSpan.textContent = setorTexto[maquina.setor] || maquina.setor;
+            setorSpan.style.fontSize = '10px';
+            setorSpan.style.color = '#777';
+            setorSpan.style.marginTop = '5px';
+            setorSpan.style.display = 'block';
+            
+            // Adicionar após o título
+            const titulo = header.querySelector('h3');
+            if (titulo) {
+              titulo.appendChild(document.createElement('br'));
+              titulo.appendChild(setorSpan);
+            }
+          }
+        }
+      });
+    }
+    
+    // Melhorar a função de filtragem para incluir setor
+    function melhorarFiltroSetor() {
+      // Obter o segundo select (setor)
+      const setorSelect = document.querySelectorAll('.filter-select')[1];
+      
+      if (setorSelect) {
+        // Substituir o handler de evento existente
+        setorSelect.addEventListener('change', function() {
+          filtrarMaquinas();
+        });
+      }
+      
+      // Também atualizar o primeiro select (status) para usar a nova função de filtro
+      const statusSelect = document.querySelectorAll('.filter-select')[0];
+      if (statusSelect) {
+        statusSelect.addEventListener('change', function() {
+          filtrarMaquinas();
+        });
+      }
+    }
+    
+    // Função para filtrar máquinas por status e setor
+    function filtrarMaquinas() {
+      const statusSelect = document.querySelectorAll('.filter-select')[0];
+      const setorSelect = document.querySelectorAll('.filter-select')[1];
+      
+      const statusFiltro = statusSelect ? statusSelect.value : '';
+      const setorFiltro = setorSelect ? setorSelect.value : '';
+      
+      const machineCards = document.querySelectorAll('.machine-card');
+      
+      machineCards.forEach(card => {
+        let mostrarCard = true;
+        
+        // Verificar filtro de status
+        if (statusFiltro) {
+          const cardStatus = card.querySelector('.machine-status').classList[1].replace('status-', '');
+          if (cardStatus !== statusFiltro) {
+            mostrarCard = false;
+          }
+        }
+        
+        // Verificar filtro de setor
+        if (setorFiltro && mostrarCard) {
+          const cardSetor = card.getAttribute('data-setor');
+          if (cardSetor !== setorFiltro) {
+            mostrarCard = false;
+          }
+        }
+        
+        // Aplicar visibilidade
+        card.style.display = mostrarCard ? 'block' : 'none';
+      });
+    }
+    
+    // Implementar modal de detalhes
+    function implementarModalDetalhes() {
+      // Criar o HTML do modal
+      const modalHTML = `
+        <div id="machine-modal" class="machine-modal" style="display: none;">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h3 id="modal-title">Detalhes da Máquina</h3>
+              <span class="modal-close">&times;</span>
+            </div>
+            <div class="modal-body">
+              <div id="modal-content">
+                <!-- Conteúdo será preenchido dinamicamente -->
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button id="modal-close-btn" class="btn btn-secondary">Fechar</button>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      // Estilos para o modal
+      const modalStyles = `
+        <style>
+          .machine-modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+          }
+          
+          .modal-content {
+            background-color: #fefefe;
+            margin: 10% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 700px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+          }
+          
+          .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+          }
+          
+          .modal-close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+          }
+          
+          .modal-close:hover,
+          .modal-close:focus {
+            color: black;
+            text-decoration: none;
+          }
+          
+          .modal-body {
+            padding: 10px 0;
+          }
+          
+          .modal-footer {
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+            text-align: right;
+          }
+          
+          /* Estilos para os gráficos no modal */
+          .chart-container {
+            height: 300px;
+            margin: 20px 0;
+          }
+          
+          .details-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+          }
+          
+          .detail-card {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 4px solid #1976D2;
+          }
+          
+          .detail-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #555;
+          }
+          
+          .detail-value {
+            font-size: 1.2rem;
+            color: #333;
+          }
+          
+          .oee-components {
+            display: flex;
+            justify-content: space-between;
+            margin: 20px 0;
+          }
+          
+          .oee-component {
+            text-align: center;
+            flex-grow: 1;
+            padding: 15px;
+            background: #f5f5f5;
+            border-radius: 5px;
+            margin: 0 5px;
+          }
+          
+          .component-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin: 10px 0;
+          }
+          
+          .component-label {
+            color: #777;
+            font-size: 0.9rem;
+          }
+          
+          /* Cores para os componentes */
+          .disponibilidade { color: #4CAF50; }
+          .performance { color: #FFC107; }
+          .qualidade { color: #2196F3; }
+          .oee-total { color: #673AB7; }
+        </style>
+      `;
+      
+      // Adicionar HTML e estilos ao documento
+      document.body.insertAdjacentHTML('beforeend', modalHTML);
+      document.head.insertAdjacentHTML('beforeend', modalStyles);
+      
+      // Configurar eventos do modal
+      const modal = document.getElementById('machine-modal');
+      const closeBtn = document.querySelector('.modal-close');
+      const closeButtonFooter = document.getElementById('modal-close-btn');
+      
+      // Função para fechar o modal
+      function fecharModal() {
+        modal.style.display = 'none';
+      }
+      
+      // Adicionar eventos para fechar o modal
+      if (closeBtn) closeBtn.addEventListener('click', fecharModal);
+      if (closeButtonFooter) closeButtonFooter.addEventListener('click', fecharModal);
+      
+      // Fechar o modal ao clicar fora dele
+      window.addEventListener('click', function(event) {
+        if (event.target === modal) {
+          fecharModal();
+        }
+      });
+      
+      // Adicionar manipulador de evento para os botões de detalhes
+      function configurarBotoesDetalhes() {
+        const botoesDEtalhes = document.querySelectorAll('.machine-actions button:first-child');
+        
+        botoesDEtalhes.forEach(botao => {
+          botao.addEventListener('click', function(e) {
+            e.stopPropagation(); // Evitar propagar o clique para o card
+            
+            // Obter o ID da máquina
+            const card = this.closest('.machine-card');
+            const machineId = card.getAttribute('data-machine-id');
+            
+            // Exibir detalhes da máquina
+            exibirDetalhesMaquina(machineId);
+          });
+        });
+      }
+      
+      // Função para exibir detalhes da máquina no modal
+      function exibirDetalhesMaquina(machineId) {
+        const maquinas = obterReferenciaMaquinas();
+        if (!maquinas) return;
+        
+        // Encontrar a máquina pelo ID
+        const maquina = maquinas.find(m => m.id == machineId);
+        if (!maquina) {
+          console.error(`Máquina com ID ${machineId} não encontrada`);
+          return;
+        }
+        
+        // Atualizar título do modal
+        document.getElementById('modal-title').textContent = `Detalhes da ${maquina.nome}`;
+        
+        // Mapear setor para texto legível
+        const setorTexto = {
+          "producao": "Produção",
+          "montagem": "Montagem",
+          "acabamento": "Acabamento"
+        };
+        
+        // Mapear status para texto legível
+        const statusTexto = {
+          "running": "Online",
+          "idle": "Alerta",
+          "stopped": "Offline"
+        };
+        
+        // Criar conteúdo HTML para o modal
+        const conteudoHTML = `
+          <div class="details-grid">
+            <div class="detail-card">
+              <div class="detail-title">Status Atual</div>
+              <div class="detail-value">${statusTexto[maquina.status] || 'Desconhecido'}</div>
+            </div>
+            <div class="detail-card">
+              <div class="detail-title">Setor</div>
+              <div class="detail-value">${setorTexto[maquina.setor] || maquina.setor || 'Não definido'}</div>
+            </div>
+            <div class="detail-card">
+              <div class="detail-title">Tempo de Operação</div>
+              <div class="detail-value">${Math.floor(Math.random() * 24) + 1}h ${Math.floor(Math.random() * 60)}min</div>
+            </div>
+            <div class="detail-card">
+              <div class="detail-title">Última Manutenção</div>
+              <div class="detail-value">${Math.floor(Math.random() * 30) + 1} dias atrás</div>
+            </div>
+          </div>
+          
+          <h4>Componentes do OEE</h4>
+          <div class="oee-components">
+            <div class="oee-component">
+              <div class="component-label">OEE Total</div>
+              <div class="component-value oee-total">${maquina.oee.oee}</div>
+            </div>
+            <div class="oee-component">
+              <div class="component-label">Disponibilidade</div>
+              <div class="component-value disponibilidade">${maquina.oee.disponibilidade}</div>
+            </div>
+            <div class="oee-component">
+              <div class="component-label">Performance</div>
+              <div class="component-value performance">${maquina.oee.performance}</div>
+            </div>
+            <div class="oee-component">
+              <div class="component-label">Qualidade</div>
+              <div class="component-value qualidade">${maquina.oee.qualidade}</div>
+            </div>
+          </div>
+          
+          <div class="detalhes-adicionais">
+            <h4>Histórico de Eventos</h4>
+            <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+              <thead>
+                <tr style="background-color: #f2f2f2;">
+                  <th style="padding: 8px; text-align: left; border-bottom: 1px solid #ddd;">Data/Hora</th>
+                  <th style="padding: 8px; text-align: left; border-bottom: 1px solid #ddd;">Evento</th>
+                  <th style="padding: 8px; text-align: left; border-bottom: 1px solid #ddd;">Duração</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${gerarEventosAleatorios()}
+              </tbody>
+            </table>
+          </div>
+        `;
+        
+        // Atualizar o conteúdo do modal
+        document.getElementById('modal-content').innerHTML = conteudoHTML;
+        
+        // Exibir o modal
+        modal.style.display = 'block';
+      }
+      
+      // Função para gerar eventos aleatórios para a tabela de histórico
+      function gerarEventosAleatorios() {
+        const eventos = [
+          "Início de Produção",
+          "Parada Programada",
+          "Manutenção Preventiva",
+          "Troca de Ferramenta",
+          "Falha Elétrica",
+          "Fim de Produção",
+          "Ajuste de Parâmetros",
+          "Troca de Turno"
+        ];
+        
+        const dataAtual = new Date();
+        let html = '';
+        
+        // Gerar 5 eventos aleatórios
+        for (let i = 0; i < 5; i++) {
+          const evento = eventos[Math.floor(Math.random() * eventos.length)];
+          const horas = Math.floor(Math.random() * 24);
+          const minutos = Math.floor(Math.random() * 60);
+          const duracao = Math.floor(Math.random() * 60) + 1;
+          
+          // Calcular data/hora do evento (eventos mais recentes primeiro)
+          const dataEvento = new Date(dataAtual);
+          dataEvento.setHours(dataEvento.getHours() - i - (Math.random() * 5));
+          
+          const dataFormatada = `${dataEvento.getDate().toString().padStart(2, '0')}/${(dataEvento.getMonth() + 1).toString().padStart(2, '0')} ${dataEvento.getHours().toString().padStart(2, '0')}:${dataEvento.getMinutes().toString().padStart(2, '0')}`;
+          
+          html += `
+            <tr style="border-bottom: 1px solid #eee;">
+              <td style="padding: 8px;">${dataFormatada}</td>
+              <td style="padding: 8px;">${evento}</td>
+              <td style="padding: 8px;">${duracao} min</td>
+            </tr>
+          `;
+        }
+        
+        return html;
+      }
+      
+      // Configurar os botões de detalhes após um pequeno atraso
+      // para garantir que todos os elementos foram carregados
+      setTimeout(configurarBotoesDetalhes, 500);
+    }
+    
+    // Implementar modal de configuração
+    function implementarModalConfiguracao() {
+      // Criar o HTML do modal de configuração
+      const modalHTML = `
+        <div id="config-modal" class="machine-modal" style="display: none;">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h3 id="config-modal-title">Configurar Máquina</h3>
+              <span class="config-modal-close">&times;</span>
+            </div>
+            <div class="modal-body">
+              <div id="config-form">
+                <!-- Formulário será preenchido dinamicamente -->
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button id="config-save-btn" class="btn btn-primary">Salvar</button>
+              <button id="config-cancel-btn" class="btn btn-secondary">Cancelar</button>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      // Adicionar HTML ao documento
+      document.body.insertAdjacentHTML('beforeend', modalHTML);
+      
+      // Configurar eventos do modal
+      const modal = document.getElementById('config-modal');
+      const closeBtn = document.querySelector('.config-modal-close');
+      const cancelBtn = document.getElementById('config-cancel-btn');
+      const saveBtn = document.getElementById('config-save-btn');
+      
+      // Armazenar a máquina atual sendo configurada
+      let maquinaAtual = null;
+      
+      // Função para fechar o modal
+      function fecharModalConfig() {
+        modal.style.display = 'none';
+        maquinaAtual = null;
+      }
+      
+      // Adicionar eventos para fechar o modal
+      if (closeBtn) closeBtn.addEventListener('click', fecharModalConfig);
+      if (cancelBtn) cancelBtn.addEventListener('click', fecharModalConfig);
+      
+      // Fechar o modal ao clicar fora dele
+      window.addEventListener('click', function(event) {
+        if (event.target === modal) {
+          fecharModalConfig();
+        }
+      });
+      
+      // Evento para salvar as configurações
+      if (saveBtn) {
+        saveBtn.addEventListener('click', function() {
+          salvarConfiguracoes();
+        });
+      }
+      
+      // Função para salvar as configurações
+      function salvarConfiguracoes() {
+        if (!maquinaAtual) return;
+        
+        const maquinas = obterReferenciaMaquinas();
+        if (!maquinas) return;
+        
+        // Encontrar a máquina no array
+        const index = maquinas.findIndex(m => m.id == maquinaAtual.id);
+        if (index === -1) return;
+        
+        // Obter valores do formulário
+        const nome = document.getElementById('config-nome').value;
+        const setor = document.getElementById('config-setor').value;
+        
+        // Atualizar dados da máquina
+        maquinas[index].nome = nome;
+        maquinas[index].setor = setor;
+        
+        // Se a máquina estiver em execução, também pode atualizar metas
+        if (maquinas[index].status !== "stopped") {
+          const metaOEE = parseFloat(document.getElementById('config-meta-oee').value);
+          const metaDisp = parseFloat(document.getElementById('config-meta-disp').value);
+          const metaPerf = parseFloat(document.getElementById('config-meta-perf').value);
+          const metaQual = parseFloat(document.getElementById('config-meta-qual').value);
+          
+          // Adicionar metas se ainda não existirem
+          if (!maquinas[index].metas) {
+            maquinas[index].metas = {};
+          }
+          
+          // Atualizar metas
+          maquinas[index].metas.oee = metaOEE;
+          maquinas[index].metas.disponibilidade = metaDisp;
+          maquinas[index].metas.performance = metaPerf;
+          maquinas[index].metas.qualidade = metaQual;
+        }
+        
+        // Atualizar cards
+        if (typeof criarCardsMaquinas === 'function') {
+          criarCardsMaquinas();
+        } else {
+          console.error('Função criarCardsMaquinas não encontrada');
+          // Tentar atualizar manualmente
+          atualizarCardsMaquinasManualmente();
+        }   
+        
+        // Fechar o modal
+        fecharModalConfig();
+        
+        // Mostrar confirmação
+        alert(`Configurações da máquina ${nome} foram salvas com sucesso!`);
+      }
+      
+      // Função para atualizar cards manualmente se a função principal não estiver disponível
+      function atualizarCardsMaquinasManualmente() {
+        const maquinas = obterReferenciaMaquinas();
+        if (!maquinas) return;
+        
+        const cards = document.querySelectorAll('.machine-card');
+        
+        cards.forEach((card, index) => {
+          if (index < maquinas.length) {
+            const maquina = maquinas[index];
+            
+            // Atualizar nome
+            const titulo = card.querySelector('h3');
+            if (titulo) titulo.textContent = maquina.nome;
+            
+            // Atualizar setor
+            card.setAttribute('data-setor', maquina.setor);
+            
+            // Atualizar texto do setor se existir
+            const setorSpan = titulo.querySelector('.machine-sector');
+            if (setorSpan) {
+              const setorTexto = {
+                "producao": "Produção",
+                "montagem": "Montagem",
+                "acabamento": "Acabamento"
+              };
+              setorSpan.textContent = setorTexto[maquina.setor] || maquina.setor;
+            }
+          }
+        });
+      }
+      
+      // Adicionar manipulador de evento para os botões de configuração
+      function configurarBotoesConfiguracao() {
+        const botoesConfig = document.querySelectorAll('.machine-actions button:last-child');
+        
+        botoesConfig.forEach(botao => {
+          botao.addEventListener('click', function(e) {
+            e.stopPropagation(); // Evitar propagar o clique para o card
+            
+            // Obter o ID da máquina
+            const card = this.closest('.machine-card');
+            const machineId = card.getAttribute('data-machine-id');
+            
+            // Exibir formulário de configuração
+            exibirFormularioConfiguracao(machineId);
+          });
+        });
+      }
+      
+      // Função para exibir formulário de configuração da máquina
+      function exibirFormularioConfiguracao(machineId) {
+        const maquinas = obterReferenciaMaquinas();
+        if (!maquinas) return;
+        
+        // Encontrar a máquina pelo ID
+        const maquina = maquinas.find(m => m.id == machineId);
+        if (!maquina) {
+          console.error(`Máquina com ID ${machineId} não encontrada`);
+          return;
+        }
+        
+        // Armazenar a máquina atual
+        maquinaAtual = maquina;
+        
+        // Atualizar título do modal
+        document.getElementById('config-modal-title').textContent = `Configurar ${maquina.nome}`;
+        
+        // Verificar se existem metas definidas
+        const metas = maquina.metas || {
+          oee: 85,
+          disponibilidade: 90,
+          performance: 85,
+          qualidade: 95
+        };
+        
+        // Criar formulário HTML
+        const formHTML = `
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+            <div>
+              <label for="config-nome" style="display: block; margin-bottom: 5px; font-weight: bold;">Nome da Máquina</label>
+              <input type="text" id="config-nome" value="${maquina.nome}" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;" />
+            </div>
+            <div>
+              <label for="config-setor" style="display: block; margin-bottom: 5px; font-weight: bold;">Setor</label>
+              <select id="config-setor" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                <option value="producao" ${maquina.setor === 'producao' ? 'selected' : ''}>Produção</option>
+                <option value="montagem" ${maquina.setor === 'montagem' ? 'selected' : ''}>Montagem</option>
+                <option value="acabamento" ${maquina.setor === 'acabamento' ? 'selected' : ''}>Acabamento</option>
+              </select>
+            </div>
+          </div>
+          
+          <h4 style="margin-top: 20px; margin-bottom: 10px;">Metas de Desempenho</h4>
+          <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;">
+            <div>
+              <label for="config-meta-oee" style="display: block; margin-bottom: 5px; font-weight: bold;">Meta de OEE (%)</label>
+              <input type="number" id="config-meta-oee" value="${metas.oee}" min="0" max="100" step="0.1" ${maquina.status === 'stopped' ? 'disabled' : ''} style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;" />
+            </div>
+            <div>
+              <label for="config-meta-disp" style="display: block; margin-bottom: 5px; font-weight: bold;">Meta de Disponibilidade (%)</label>
+              <input type="number" id="config-meta-disp" value="${metas.disponibilidade}" min="0" max="100" step="0.1" ${maquina.status === 'stopped' ? 'disabled' : ''} style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;" />
+            </div>
+            <div>
+              <label for="config-meta-perf" style="display: block; margin-bottom: 5px; font-weight: bold;">Meta de Performance (%)</label>
+              <input type="number" id="config-meta-perf" value="${metas.performance}" min="0" max="100" step="0.1" ${maquina.status === 'stopped' ? 'disabled' : ''} style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;" />
+            </div>
+            <div>
+              <label for="config-meta-qual" style="display: block; margin-bottom: 5px; font-weight: bold;">Meta de Qualidade (%)</label>
+              <input type="number" id="config-meta-qual" value="${metas.qualidade}" min="0" max="100" step="0.1" ${maquina.status === 'stopped' ? 'disabled' : ''} style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;" />
+            </div>
+          </div>
+          
+          ${maquina.status === 'stopped' ? '<p style="margin-top: 15px; color: #C62828;">Nota: As metas não podem ser editadas enquanto a máquina estiver offline.</p>' : ''}
+        `;
+        
+        // Atualizar o conteúdo do formulário
+        document.getElementById('config-form').innerHTML = formHTML;
+        
+        // Exibir o modal
+        modal.style.display = 'block';
+      }
+
+      // Configurar os botões de configuração após um pequeno atraso
+      // para garantir que todos os elementos foram carregados
+      setTimeout(configurarBotoesConfiguracao, 500);
+    }
+    
+    // Implementar funcionalidade de adicionar máquina
+    function implementarAdicionarMaquina() {
+      // Adicionar manipulador de evento para o botão "Adicionar Máquina"
+      const btnAdicionar = document.querySelector('.add-machine-btn');
+      
+      if (btnAdicionar) {
+        btnAdicionar.addEventListener('click', function() {
+          exibirModalAdicionarMaquina();
+        });
+      }
+      
+      // Criar o HTML do modal de adicionar máquina
+      const modalHTML = `
+        <div id="add-machine-modal" class="machine-modal" style="display: none;">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h3>Adicionar Nova Máquina</h3>
+              <span class="add-modal-close">&times;</span>
+            </div>
+            <div class="modal-body">
+              <div id="add-machine-form">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                  <div>
+                    <label for="add-nome" style="display: block; margin-bottom: 5px; font-weight: bold;">Nome da Máquina</label>
+                    <input type="text" id="add-nome" placeholder="Ex: Máquina 4" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;" />
+                  </div>
+                  <div>
+                    <label for="add-setor" style="display: block; margin-bottom: 5px; font-weight: bold;">Setor</label>
+                    <select id="add-setor" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                      <option value="producao">Produção</option>
+                      <option value="montagem">Montagem</option>
+                      <option value="acabamento">Acabamento</option>
+                    </select>
+                  </div>
+                </div>
+                
+                <div style="margin-bottom: 20px;">
+                  <label for="add-status" style="display: block; margin-bottom: 5px; font-weight: bold;">Status Inicial</label>
+                  <select id="add-status" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                    <option value="running">Online</option>
+                    <option value="idle">Alerta</option>
+                    <option value="stopped">Offline</option>
+                  </select>
+                </div>
+                
+                <h4 style="margin-top: 20px; margin-bottom: 10px;">Valores Iniciais (somente para máquinas Online/Alerta)</h4>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;">
+                  <div>
+                    <label for="add-oee" style="display: block; margin-bottom: 5px; font-weight: bold;">OEE (%)</label>
+                    <input type="number" id="add-oee" value="75.0" min="0" max="100" step="0.1" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;" />
+                  </div>
+                  <div>
+                    <label for="add-disp" style="display: block; margin-bottom: 5px; font-weight: bold;">Disponibilidade (%)</label>
+                    <input type="number" id="add-disp" value="85.0" min="0" max="100" step="0.1" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;" />
+                  </div>
+                  <div>
+                    <label for="add-perf" style="display: block; margin-bottom: 5px; font-weight: bold;">Performance (%)</label>
+                    <input type="number" id="add-perf" value="80.0" min="0" max="100" step="0.1" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;" />
+                  </div>
+                  <div>
+                    <label for="add-qual" style="display: block; margin-bottom: 5px; font-weight: bold;">Qualidade (%)</label>
+                    <input type="number" id="add-qual" value="95.0" min="0" max="100" step="0.1" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;" />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button id="add-save-btn" class="btn btn-primary">Adicionar</button>
+              <button id="add-cancel-btn" class="btn btn-secondary">Cancelar</button>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      // Adicionar HTML ao documento
+      document.body.insertAdjacentHTML('beforeend', modalHTML);
+      
+      // Configurar eventos do modal
+      const modal = document.getElementById('add-machine-modal');
+      const closeBtn = document.querySelector('.add-modal-close');
+      const cancelBtn = document.getElementById('add-cancel-btn');
+      const saveBtn = document.getElementById('add-save-btn');
+      
+      // Função para fechar o modal
+      function fecharModalAdicionar() {
+        modal.style.display = 'none';
+      }
+      
+      // Adicionar eventos para fechar o modal
+      if (closeBtn) closeBtn.addEventListener('click', fecharModalAdicionar);
+      if (cancelBtn) cancelBtn.addEventListener('click', fecharModalAdicionar);
+      
+      // Fechar o modal ao clicar fora dele
+      window.addEventListener('click', function(event) {
+        if (event.target === modal) {
+          fecharModalAdicionar();
+        }
+      });
+      
+      // Configurar o status inicial para atualizar os campos de valores
+      const statusSelect = document.getElementById('add-status');
+      if (statusSelect) {
+        statusSelect.addEventListener('change', function() {
+          const campos = ['add-oee', 'add-disp', 'add-perf', 'add-qual'];
+          
+          campos.forEach(campo => {
+            const elemento = document.getElementById(campo);
+            if (elemento) {
+              if (this.value === 'stopped') {
+                elemento.disabled = true;
+                elemento.value = '0.0';
+              } else {
+                elemento.disabled = false;
+                
+                // Restaurar valores padrão
+                if (campo === 'add-oee') elemento.value = '75.0';
+                if (campo === 'add-disp') elemento.value = '85.0';
+                if (campo === 'add-perf') elemento.value = '80.0';
+                if (campo === 'add-qual') elemento.value = '95.0';
+              }
+            }
+          });
+        });
+      }
+      
+      // Evento para adicionar nova máquina
+      if (saveBtn) {
+        saveBtn.addEventListener('click', function() {
+          adicionarNovaMaquina();
+        });
+      }
+      
+      // Função para adicionar nova máquina
+      function adicionarNovaMaquina() {
+        const maquinas = obterReferenciaMaquinas();
+        if (!maquinas) return;
+        
+        // Obter valores do formulário
+        const nome = document.getElementById('add-nome').value;
+        const setor = document.getElementById('add-setor').value;
+        const status = document.getElementById('add-status').value;
+        
+        // Validar nome
+        if (!nome || nome.trim() === '') {
+          alert('Por favor, insira um nome para a máquina.');
+          return;
+        }
+        
+        // Obter valores de OEE (se não for offline)
+        let oee, disponibilidade, performance, qualidade;
+        
+        if (status === 'stopped') {
+          oee = disponibilidade = performance = qualidade = '0.0%';
+        } else {
+          oee = document.getElementById('add-oee').value + '%';
+          disponibilidade = document.getElementById('add-disp').value + '%';
+          performance = document.getElementById('add-perf').value + '%';
+          qualidade = document.getElementById('add-qual').value + '%';
+        }
+        
+        // Gerar novo ID (último ID + 1)
+        const novoId = maquinas.length > 0 ? Math.max(...maquinas.map(m => m.id)) + 1 : 1;
+        
+        // Criar objeto da nova máquina
+        const novaMaquina = {
+          id: novoId,
+          nome: nome,
+          setor: setor,
+          status: status,
+          oee: {
+            oee: oee,
+            disponibilidade: disponibilidade,
+            performance: performance,
+            qualidade: qualidade
+          }
+        };
+        
+        // Adicionar máquina ao array
+        maquinas.push(novaMaquina);
+        
+        // Atualizar interface
+        if (typeof criarCardsMaquinas === 'function') {
+          criarCardsMaquinas();
+        } else {
+          console.error('Função criarCardsMaquinas não encontrada');
+          // Tentar atualizar manualmente
+          adicionarMaquinaManualmente(novaMaquina);
+        }
+        
+        // Fechar o modal
+        fecharModalAdicionar();
+        
+        // Mostrar confirmação
+        alert(`Nova máquina "${nome}" adicionada com sucesso!`);
+        
+        // Sincronizar com o dashboard (se disponível)
+        sincronizarComDashboard(maquinas);
+      }
+      
+      // Função para adicionar uma máquina manualmente se a função principal não estiver disponível
+      function adicionarMaquinaManualmente(novaMaquina) {
+        const machinesGrid = document.querySelector('.machines-grid');
+        if (!machinesGrid) return;
+        
+        const statusMapeado = {
+          "running": { classe: "status-online", texto: "Online" },
+          "idle": { classe: "status-warning", texto: "Alerta" },
+          "stopped": { classe: "status-offline", texto: "Offline" }
+        }[novaMaquina.status] || { classe: "status-offline", texto: "Offline" };
+        
+        const cardHTML = `
+          <div class="machine-card" data-machine-id="${novaMaquina.id}" data-setor="${novaMaquina.setor}">
+            <div class="machine-header">
+              <h3>${novaMaquina.nome}<br><style="font-size: 10px; color: #777;">${
+                { "producao": "Produção", "montagem": "Montagem", "acabamento": "Acabamento" }[novaMaquina.setor] || novaMaquina.setor
+              }</span></h3>
+              <span class="machine-status ${statusMapeado.classe}">${statusMapeado.texto}</span>
+            </div>
+            <div class="machine-body">
+              <div class="machine-stats">
+                <div class="stat-item">
+                  <div class="stat-label">OEE</div>
+                  <div class="stat-value">${novaMaquina.oee.oee}</div>
+                </div>
+                <div class="stat-item">
+                  <div class="stat-label">Disponibilidade</div>
+                  <div class="stat-value">${novaMaquina.oee.disponibilidade}</div>
+                </div>
+                <div class="stat-item">
+                  <div class="stat-label">Performance</div>
+                  <div class="stat-value">${novaMaquina.oee.performance}</div>
+                </div>
+                <div class="stat-item">
+                  <div class="stat-label">Qualidade</div>
+                  <div class="stat-value">${novaMaquina.oee.qualidade}</div>
+                </div>
+              </div>
+              <div class="machine-actions">
+                <button class="btn btn-secondary">
+                  <i class="fas fa-chart-line"></i> Detalhes
+                </button>
+                <button class="btn btn-secondary">
+                  <i class="fas fa-cog"></i> Configurar
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+        
+        machinesGrid.insertAdjacentHTML('beforeend', cardHTML);
+        
+        // Atualizar manipuladores de eventos
+        adicionarEventosMaquinasManualmente();
+      }
+      
+      // Função para adicionar eventos às máquinas manualmente
+      function adicionarEventosMaquinasManualmente() {
+        const machineCards = document.querySelectorAll('.machine-card');
+        
+        machineCards.forEach(card => {
+          // Adicionar eventos apenas se ainda não tiverem sido adicionados
+          if (!card.hasAttribute('data-events-added')) {
+            // Marcar card como tendo eventos adicionados
+            card.setAttribute('data-events-added', 'true');
+          
+            
+            // Eventos para botões
+            const btnDetalhes = card.querySelector('.machine-actions button:first-child');
+            const btnConfigurar = card.querySelector('.machine-actions button:last-child');
+            
+          }
+        });
+      }
+      
+      // Função para exibir o modal de adicionar máquina
+      function exibirModalAdicionarMaquina() {
+        // Limpar formulário
+        document.getElementById('add-nome').value = '';
+        document.getElementById('add-setor').value = 'producao';
+        document.getElementById('add-status').value = 'running';
+        document.getElementById('add-oee').value = '75.0';
+        document.getElementById('add-disp').value = '85.0';
+        document.getElementById('add-perf').value = '80.0';
+        document.getElementById('add-qual').value = '95.0';
+        
+        // Exibir o modal
+        modal.style.display = 'block';
+      }
+    }
+    
+    // Função principal para inicializar todas as funcionalidades adicionais
+    function inicializarFuncionalidadesAdicionais() {
+      console.log('Inicializando funcionalidades adicionais da página de máquinas...');
+      
+      // Adicionar setores às máquinas existentes
+      adicionarSetores();
+      
+      // Melhorar a funcionalidade de filtragem
+      melhorarFiltroSetor();
+      
+      // Implementar modais e funcionalidades
+      implementarModalDetalhes();
+      implementarModalConfiguracao();
+      implementarAdicionarMaquina();
+      
+      console.log('Funcionalidades adicionais inicializadas com sucesso!');
+    }
+    
+    // Inicializar após um pequeno atraso para garantir que os elementos da página estão carregados
+    setTimeout(inicializarFuncionalidadesAdicionais, 500);
+});
+
+// Sistema de persistência de máquinas unificado
+document.addEventListener('DOMContentLoaded', function() {
+  console.log("Inicializando sistema de máquinas...");
+  
+  // Primeiro, verificar se há dados no localStorage
+  try {
+    const dadosSalvos = localStorage.getItem('sistemaoee_maquinas');
+    if (dadosSalvos) {
+      const maquinasParsed = JSON.parse(dadosSalvos);
+      if (Array.isArray(maquinasParsed) && maquinasParsed.length > 0) {
+        // Substituir o array window.maquinasData pelos dados salvos
+        window.maquinasData = maquinasParsed;
+        console.log(`Carregadas ${maquinasParsed.length} máquinas do localStorage`);
+      }
+    }
+  } catch (e) {
+    console.error("Erro ao carregar dados do localStorage:", e);
+  }
+  
+  // Definir função de sincronização com localStorage
+  window.sincronizarComDashboard = function(maquinas) {
+    if (!Array.isArray(maquinas)) return;
+    
+    try {
+      localStorage.setItem('sistemaoee_maquinas', JSON.stringify(maquinas));
+      console.log(`Salvas ${maquinas.length} máquinas no localStorage`);
+    } catch (e) {
+      console.error("Erro ao salvar no localStorage:", e);
+    }
+  };
+  
+  // Adicionar botão de recarregar
+  const header = document.querySelector('.page-header');
+  if (header) {
+    // Criar o botão
+    const btnReload = document.createElement('button');
+    btnReload.id = 'reload-btn';
+    btnReload.className = 'btn btn-primary';
+    btnReload.innerHTML = '<i class="fas fa-sync"></i> Recarregar Página';
+
+    btnReload.style.margin = '0 auto';
+    btnReload.style.position = 'absolute';
+    btnReload.style.left = '50%';
+    btnReload.style.transform = 'translateX(-50%)';
+    
+    btnReload.addEventListener('click', function() {
+      location.reload();
+    });
+    
+    header.style.position = 'relative';
+
+    header.appendChild(btnReload);
+  }
+  
+  // Sobrescrever a função adicionarNovaMaquina
+  const originalAddMaquina = window.adicionarNovaMaquina;
+  window.adicionarNovaMaquina = function() {
+    // Verificar se temos dados mais recentes no localStorage
+    try {
+      const savedData = localStorage.getItem('sistemaoee_maquinas');
+      if (savedData) {
+        const parsedData = JSON.parse(savedData);
+        if (Array.isArray(parsedData) && parsedData.length > window.maquinasData.length) {
+          // Atualizar dados locais antes de adicionar nova máquina
+          window.maquinasData = parsedData;
+        }
+      }
+    } catch (e) {
+      console.error("Erro ao verificar localStorage:", e);
+    }
+    
+    // Chamar a função original
+    originalAddMaquina.apply(this, arguments);
+    
+    // Salvar no localStorage após adicionar
+    sincronizarComDashboard(window.maquinasData);
+  };
+  
+  // Recriar os cards para garantir que estão atualizados
+  if (typeof window.criarCardsMaquinas === 'function') {
+    window.criarCardsMaquinas();
+  }
+});
+    </script>
+    
+</body>
+</html>

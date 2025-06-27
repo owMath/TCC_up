@@ -1,0 +1,36 @@
+{
+    "name": "sistema-oee",
+    "version": "1.0.0",
+    "description": "Sistema de Monitoramento e Cálculo de Eficiência de Máquinas Industriais",
+    "main": "app.js",
+    "scripts": {
+        "start": "node app.js",
+        "dev": "nodemon app.js",
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "generate-diagrams": "node gerar-diagramas.js"
+    },
+    "keywords": [
+        "oee",
+        "eficiência",
+        "máquinas",
+        "monitoramento",
+        "indústria"
+    ],
+    "author": "Henrique, Pedro e Matheus",
+    "license": "ISC",
+    "dependencies": {
+        "bcrypt": "^5.1.1",
+        "body-parser": "^1.20.3",
+        "express": "^4.21.2",
+        "jsonwebtoken": "^9.0.2",
+        "mongodb": "^5.9.2",
+        "net": "^1.0.2",
+        "nodemailer": "^6.10.0",
+        "puppeteer": "^21.0.0",
+        "ws": "^8.18.1"
+    },
+    "devDependencies": {
+        "dotenv": "^16.4.7",
+        "nodemon": "^3.0.1"
+    }
+}

@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>Sistema OEE - Perfil</title>
+   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+   <style>
+       :root {
+           --primary-color: #1a73e8;
+           --secondary-color: #4285f4;
+           --text-color: #333;
+           --background-color: #f5f5f5;
+           --card-bg: #ffffff;
+           --border-color: #e0e0e0;
+           --success-color: #0f9d58;
+           --warning-color: #f4b400;
+           --danger-color: #d93025;
+       }
+
+       * {
+           margin: 0;
+           padding: 0;
+           box-sizing: border-box;
+           font-family: 'Roboto', 'Segoe UI', sans-serif;
+       }
+
+       body {
+           background-color: var(--background-color);
+           color: var(--text-color);
+           min-height: 100vh;
+           display: flex;
+       }
+
+       /* Sidebar */
+       .sidebar {
+           width: 250px;
+           background-color: var(--primary-color);
+           color: white;
+           padding: 20px 0;
+           height: 100vh;
+           position: fixed;
+           left: 0;
+           top: 0;
+           transition: all 0.3s ease;
+           z-index: 100;
+       }
+
+       .sidebar-header {
+           padding: 0 20px 20px;
+           border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+       }
+
+       .sidebar-header h2 {
+           font-size: 1.5rem;
+           margin-bottom: 5px;
+       }
+
+       .menu {
+           padding: 20px 0;
+       }
+
+       .menu-item {
+           padding: 12px 20px;
+           display: flex;
+           align-items: center;
+           cursor: pointer;
+           transition: background-color 0.3s ease;
+       }
+
+       .menu-item {
+           text-decoration: none;
+           color: white;
+       }
+       
+       .menu-item a {
+           text-decoration: none;
+           color: inherit;
+       }
+
+       .menu-item i {
+           margin-right: 10px;
+           font-size: 1.2rem;
+       }
+
+       .menu-item:hover, .menu-item.active {
+           background-color: rgba(255, 255, 255, 0.1);
+       }
+
+       /* Main Content */
+       .main-content {
+           flex: 1;
+           margin-left: 250px;
+           padding: 20px;
+       }
+
+       .header {
+           display: flex;
+           justify-content: space-between;
+           align-items: center;
+           margin-bottom: 20px;
+           padding-bottom: 10px;
+           border-bottom: 1px solid var(--border-color);
+       }
+
+       .header h1 {
+           font-size: 1.8rem;
+       }
+
+       .user-info {
+           display: flex;
+           align-items: center;
+       }
+
+       .user-name {
+           margin-right: 10px;
+       }
+
+       .logout-btn {
+           background: none;
+           border: none;
+           color: var(--primary-color);
+           cursor: pointer;
+           font-size: 0.9rem;
+       }
+
+       /* Profile Styles */
+       .profile-container {
+           background-color: var(--card-bg);
+           border-radius: 8px;
+           box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+           overflow: hidden;
+       }
+
+       .profile-header {
+           background-color: var(--primary-color);
+           color: white;
+           padding: 40px 20px;
+           text-align: center;
+       }
+
+       .profile-pic {
+           width: 120px;
+           height: 120px;
+           border-radius: 50%;
+           background-color: #e0e0e0;
+           margin: 0 auto 15px;
+           display: flex;
+           align-items: center;
+           justify-content: center;
+           border: 4px solid white;
+       }
+
+       .profile-pic i {
+           font-size: 50px;
+           color: #999;
+       }
+
+       .profile-name {
+           font-size: 1.8rem;
+           margin-bottom: 5px;
+       }
+
+       .profile-role {
+           opacity: 0.9;
+           font-size: 1rem;
+       }
+
+       .profile-content {
+           padding: 30px;
+       }
+
+       .profile-section {
+           margin-bottom: 30px;
+       }
+
+       .profile-section h3 {
+           font-size: 1.2rem;
+           color: var(--primary-color);
+           margin-bottom: 15px;
+           padding-bottom: 8px;
+           border-bottom: 1px solid #eee;
+       }
+
+       .profile-info-item {
+           display: flex;
+           margin-bottom: 15px;
+       }
+
+       .info-label {
+           width: 150px;
+           font-weight: 600;
+           color: #666;
+       }
+
+       .info-value {
+           flex: 1;
+       }
+
+       .profile-stats {
+           display: flex;
+           justify-content: space-between;
+           flex-wrap: wrap;
+           margin-top: 10px;
+       }
+
+       .stat-card {
+           flex-basis: calc(33.33% - 20px);
+           background-color: var(--background-color);
+           padding: 15px;
+           border-radius: 6px;
+           text-align: center;
+           margin-bottom: 20px;
+       }
+
+       .stat-card h4 {
+           font-size: 0.9rem;
+           color: #666;
+           margin-bottom: 8px;
+       }
+
+       .stat-card .stat-value {
+           font-size: 1.8rem;
+           font-weight: bold;
+           color: var(--primary-color);
+       }
+
+       .stat-card .stat-subtitle {
+           font-size: 0.8rem;
+           color: #888;
+           margin-top: 5px;
+       }
+
+       .edit-button {
+           display: inline-block;
+           background-color: var(--primary-color);
+           color: white;
+           padding: 10px 20px;
+           border-radius: 4px;
+           text-decoration: none;
+           font-weight: 500;
+           margin-top: 20px;
+           transition: background-color 0.3s;
+       }
+
+       .edit-button:hover {
+           background-color: var(--secondary-color);
+       }
+
+       /* Responsive */
+       @media (max-width: 768px) {
+           .sidebar {
+               width: 70px;
+               overflow: hidden;
+           }
+           
+           .sidebar-header h2, .menu-item span {
+               display: none;
+           }
+           
+           .menu-item {
+               justify-content: center;
+           }
+           
+           .menu-item i {
+               margin-right: 0;
+               font-size: 1.5rem;
+           }
+           
+           .main-content {
+               margin-left: 70px;
+           }
+           
+           .stat-card {
+               flex-basis: calc(50% - 20px);
+           }
+       }
+
+       /* Loading indicator */
+       .loading-indicator {
+           display: flex;
+           justify-content: center;
+           align-items: center;
+           padding: 20px;
+       }
+
+       .spinner {
+           border: 4px solid rgba(0, 0, 0, 0.1);
+           border-radius: 50%;
+           border-top: 4px solid var(--primary-color);
+           width: 40px;
+           height: 40px;
+           animation: spin 1s linear infinite;
+       }
+
+       @keyframes spin {
+           0% { transform: rotate(0deg); }
+           100% { transform: rotate(360deg); }
+       }
+
+       /* Edit profile modal */
+       .modal {
+           display: none;
+           position: fixed;
+           z-index: 200;
+           left: 0;
+           top: 0;
+           width: 100%;
+           height: 100%;
+           background-color: rgba(0, 0, 0, 0.5);
+           overflow: auto;
+       }
+
+       .modal-content {
+           background-color: white;
+           margin: 50px auto;
+           padding: 20px;
+           border-radius: 8px;
+           width: 80%;
+           max-width: 600px;
+           box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+           position: relative;
+       }
+
+       .close-btn {
+           position: absolute;
+           top: 15px;
+           right: 20px;
+           font-size: 24px;
+           cursor: pointer;
+           color: #777;
+       }
+
+       .modal-header {
+           border-bottom: 1px solid #eee;
+           padding-bottom: 15px;
+           margin-bottom: 20px;
+       }
+
+       .modal-header h3 {
+           font-size: 1.4rem;
+           color: var(--primary-color);
+       }
+
+       .form-group {
+           margin-bottom: 15px;
+       }
+
+       .form-group label {
+           display: block;
+           margin-bottom: 5px;
+           font-weight: 500;
+           color: #555;
+       }
+
+       .form-group input,
+       .form-group select {
+           width: 100%;
+           padding: 10px;
+           border: 1px solid var(--border-color);
+           border-radius: 4px;
+           font-size: 14px;
+       }
+
+       .form-group input:focus,
+       .form-group select:focus {
+           outline: none;
+           border-color: var(--primary-color);
+       }
+
+       .form-row {
+           display: flex;
+           gap: 15px;
+       }
+
+       .form-row .form-group {
+           flex: 1;
+       }
+
+       .form-actions {
+           display: flex;
+           justify-content: flex-end;
+           margin-top: 20px;
+           gap: 10px;
+       }
+
+       .error-message {
+           color: var(--danger-color);
+           font-size: 14px;
+           margin-top: 5px;
+           display: none;
+       }
+
+       .success-message {
+           color: var(--success-color);
+           font-size: 14px;
+           margin-top: 5px;
+           display: none;
+       }
+   </style>
+</head>
+<body>
+   <!-- Sidebar -->
+   <div class="sidebar">
+       <div class="sidebar-header">
+           <h2>Sistema OEE</h2>
+           <p>Painel de Controle</p>
+       </div>
+       <div class="menu">
+           <a href="dashboard.html" class="menu-item">
+               <i class="fas fa-tachometer-alt"></i>
+               <span>Dashboard</span>
+           </a>
+           <a href="maquinas.html" class="menu-item">
+               <i class="fas fa-industry"></i>
+               <span>Máquinas</span>
+           </a>
+           <a href="relatorios.html" class="menu-item">
+               <i class="fas fa-chart-line"></i>
+               <span>Relatórios</span>
+           </a>
+           <a href="logistica.html" class="menu-item">
+            <i class="fas fa-truck"></i>
+            <span>Logística</span>
+        </a>
+           <a href="configuracoes.html" class="menu-item">
+               <i class="fas fa-cog"></i>
+               <span>Configurações</span>
+           </a>
+           <a href="perfil.html" class="menu-item active">
+               <i class="fas fa-user"></i>
+               <span>Perfil</span>
+           </a>
+       </div>
+   </div>
+
+   <!-- Main Content -->
+   <div class="main-content">
+       <div class="header">
+           <h1>Perfil</h1>
+           <div class="user-info">
+               <span class="user-name" id="user-name">Usuário</span>
+               <button class="logout-btn" id="logout-btn">Sair</button>
+           </div>
+       </div>
+
+       <div class="profile-container">
+           <div class="profile-header">
+               <div class="profile-pic">
+                   <i class="fas fa-user"></i>
+               </div>
+               <h2 class="profile-name">Carregando...</h2>
+               <p class="profile-role">Carregando...</p>
+           </div>
+           
+           <div class="profile-content">
+               <div id="loading-profile" class="loading-indicator">
+                   <div class="spinner"></div>
+               </div>
+               
+               <div id="profile-data" style="display: none;">
+                   <div class="profile-section">
+                       <h3>Informações Pessoais</h3>
+                       <div class="profile-info-item">
+                           <div class="info-label">Nome:</div>
+                           <div class="info-value" id="profile-name">Carregando...</div>
+                       </div>
+                       <div class="profile-info-item">
+                           <div class="info-label">Email:</div>
+                           <div class="info-value" id="profile-email">Carregando...</div>
+                       </div>
+                       <div class="profile-info-item">
+                           <div class="info-label">Telefone:</div>
+                           <div class="info-value" id="profile-phone">Carregando...</div>
+                       </div>
+                       <div class="profile-info-item">
+                           <div class="info-label">Cidade:</div>
+                           <div class="info-value" id="profile-city">Carregando...</div>
+                       </div>
+                       <div class="profile-info-item">
+                           <div class="info-label">Estado:</div>
+                           <div class="info-value" id="profile-state">Carregando...</div>
+                       </div>
+                   </div>
+                   
+                   <div class="profile-section">
+                       <h3>Informações Profissionais</h3>
+                       <div class="profile-info-item">
+                           <div class="info-label">Departamento:</div>
+                           <div class="info-value" id="profile-department">Carregando...</div>
+                       </div>
+                       <div class="profile-info-item">
+                           <div class="info-label">Cargo:</div>
+                           <div class="info-value" id="profile-position">Carregando...</div>
+                       </div>
+                       <div class="profile-info-item">
+                           <div class="info-label">Matrícula:</div>
+                           <div class="info-value" id="profile-employee-id">Carregando...</div>
+                       </div>
+                       <div class="profile-info-item">
+                           <div class="info-label">Setor da Empresa:</div>
+                           <div class="info-value" id="profile-company-sector">Carregando...</div>
+                       </div>
+                   </div>
+                   
+                   <div class="profile-section">
+                       <h3>Estatísticas de Utilização</h3>
+                       <div class="profile-stats">
+                           <div class="stat-card">
+                               <h4>Máquinas Monitoradas</h4>
+                               <div class="stat-value">12</div>
+                               <div class="stat-subtitle">Total sob supervisão</div>
+                           </div>
+                           <div class="stat-card">
+                               <h4>OEE Médio</h4>
+                               <div class="stat-value">78.5%</div>
+                               <div class="stat-subtitle">Últimos 30 dias</div>
+                           </div>
+                           <div class="stat-card">
+                               <h4>Alertas</h4>
+                               <div class="stat-value">3</div>
+                               <div class="stat-subtitle">Requerem atenção</div>
+                           </div>
+                           <div class="stat-card">
+                               <h4>Ordens de Produção</h4>
+                               <div class="stat-value">24</div>
+                               <div class="stat-subtitle">Em andamento</div>
+                           </div>
+                           <div class="stat-card">
+                               <h4>Relatórios Gerados</h4>
+                               <div class="stat-value">42</div>
+                               <div class="stat-subtitle">Neste mês</div>
+                           </div>
+                           <div class="stat-card">
+                               <h4>Tempo no Sistema</h4>
+                               <div class="stat-value">187h</div>
+                               <div class="stat-subtitle">Último trimestre</div>
+                           </div>
+                       </div>
+                   </div>
+                   
+                   <div class="profile-section">
+                       <h3>Preferências do Sistema</h3>
+                       <div class="profile-info-item">
+                           <div class="info-label">Idioma:</div>
+                           <div class="info-value">Português (Brasil)</div>
+                       </div>
+                       <div class="profile-info-item">
+                           <div class="info-label">Notificações:</div>
+                           <div class="info-value">Ativadas (Email e Sistema)</div>
+                       </div>
+                       <div class="profile-info-item">
+                           <div class="info-label">Temas:</div>
+                           <div class="info-value">Padrão (Azul)</div>
+                       </div>
+                       <div class="profile-info-item">
+                           <div class="info-label">Período padrão:</div>
+                           <div class="info-value">Últimos 30 dias</div>
+                       </div>
+                   </div>
+                   
+                   <button id="edit-profile-btn" class="edit-button">
+                       <i class="fas fa-edit"></i> Editar Perfil
+                   </button>
+               </div>
+           </div>
+       </div>
+   </div>
+
+   <!-- Modal de Edição de Perfil -->
+   <div id="edit-profile-modal" class="modal">
+       <div class="modal-content">
+           <span class="close-btn" id="close-modal">&times;</span>
+           <div class="modal-header">
+               <h3>Editar Perfil</h3>
+           </div>
+           <form id="edit-profile-form">
+               <div class="form-row">
+                   <div class="form-group">
+                       <label for="edit-name">Nome Completo</label>
+                       <input type="text" id="edit-name" name="name" required>
+                   </div>
+               </div>
+               
+               <div class="form-row">
+                   <div class="form-group">
+                       <label for="edit-email">Email</label>
+                       <input type="email" id="edit-email" name="email" required disabled>
+                       <small>O email não pode ser alterado</small>
+                   </div>
+               </div>
+               
+               <div class="form-row">
+                   <div class="form-group">
+                       <label for="edit-phone">Telefone</label>
+                       <input type="tel" id="edit-phone" name="phone" placeholder="(00) 00000-0000">
+                   </div>
+                   <div class="form-group">
+                       <label for="edit-gender">Sexo</label>
+                       <select id="edit-gender" name="gender">
+                           <option value="">Selecione</option>
+                           <option value="masculino">Masculino</option>
+                           <option value="feminino">Feminino</option>
+                           <option value="outro">Outro</option>
+                           <option value="prefiro-nao-informar">Prefiro não informar</option>
+                       </select>
+                   </div>
+               </div>
+               
+               <div class="form-row">
+                   <div class="form-group">
+                       <label for="edit-city">Cidade</label>
+                       <input type="text" id="edit-city" name="city">
+                   </div>
+                   <div class="form-group">
+                       <label for="edit-state">Estado</label>
+                       <select id="edit-state" name="state">
+                           <option value="">Selecione</option>
+                           <option value="AC">Acre</option>
+                           <option value="AL">Alagoas</option>
+                           <option value="AP">Amapá</option>
+                           <option value="AM">Amazonas</option>
+                           <option value="BA">Bahia</option>
+                           <option value="CE">Ceará</option>
+                           <option value="DF">Distrito Federal</option>
+                           <option value="ES">Espírito Santo</option>
+                           <option value="GO">Goiás</option>
+                           <option value="MA">Maranhão</option>
+                           <option value="MT">Mato Grosso</option>
+                           <option value="MS">Mato Grosso do Sul</option>
+                           <option value="MG">Minas Gerais</option>
+                           <option value="PA">Pará</option>
+                           <option value="PB">Paraíba</option>
+                           <option value="PR">Paraná</option>
+                           <option value="PE">Pernambuco</option>
+                           <option value="PI">Piauí</option>
+                           <option value="RJ">Rio de Janeiro</option>
+                           <option value="RN">Rio Grande do Norte</option>
+                           <option value="RS">Rio Grande do Sul</option>
+                           <option value="RO">Rondônia</option>
+                           <option value="RR">Roraima</option>
+                           <option value="SC">Santa Catarina</option>
+                           <option value="SP">São Paulo</option>
+                           <option value="SE">Sergipe</option>
+                           <option value="TO">Tocantins</option>
+                       </select>
+                   </div>
+               </div>
+               
+               <div class="form-row">
+                   <div class="form-group">
+                       <label for="edit-department">Departamento</label>
+                       <input type="text" id="edit-department" name="department">
+                   </div>
+                   <div class="form-group">
+                       <label for="edit-position">Cargo</label>
+                       <input type="text" id="edit-position" name="position">
+                   </div>
+               </div>
+               
+               <div class="form-row">
+                   <div class="form-group">
+                       <label for="edit-employee-id">Matrícula/ID de Funcionário</label>
+                       <input type="text" id="edit-employee-id" name="employeeId">
+                   </div>
+                   <div class="form-group">
+                       <label for="edit-company-sector">Setor da Empresa</label>
+                       <input type="text" id="edit-company-sector" name="companySector">
+                   </div>
+               </div>
+               
+               <div class="error-message" id="edit-error"></div>
+               <div class="success-message" id="edit-success"></div>
+               
+               <div class="form-actions">
+                   <button type="button" id="cancel-edit" class="edit-button" style="background-color: #f44336;">Cancelar</button>
+                   <button type="submit" class="edit-button">Salvar Alterações</button>
+               </div>
+           </form>
+       </div>
+   </div>
+
+   <script>
+       // Verificar autenticação
+       function checkAuth() {
+           const token = localStorage.getItem('token');
+           if (!token) {
+               window.location.href = '/';
+               return false;
+           }
+           return true;
+       }
+       
+       // Inicialização dos elementos da UI
+       document.addEventListener('DOMContentLoaded', function() {
+           if (!checkAuth()) return;
+           
+           // Configurar logout
+           document.getElementById('logout-btn').addEventListener('click', function() {
+               localStorage.removeItem('token');
+               localStorage.removeItem('user');
+               window.location.href = '/';
+           });
+           
+           // Obter informações do usuário do localStorage para exibição inicial
+           try {
+               const userInfo = JSON.parse(localStorage.getItem('user'));
+               if (userInfo && userInfo.name) {
+                   document.getElementById('user-name').textContent = userInfo.name;
+                   
+                   // Preencher dados básicos do localStorage
+                   fillBasicUserInfo(userInfo);
+               }
+           } catch (error) {
+               console.error('Erro ao obter informações do usuário do localStorage:', error);
+           }
+           
+           // Carregar dados completos do perfil do servidor
+           loadUserProfile();
+           
+           // Configurar eventos para o menu
+           const menuItems = document.querySelectorAll('.menu-item');
+           menuItems.forEach(item => {
+               item.addEventListener('click', function() {
+                   menuItems.forEach(i => i.classList.remove('active'));
+                   this.classList.add('active');
+               });
+           });
+           
+           // Configurar modal de edição de perfil
+           const modal = document.getElementById('edit-profile-modal');
+           const editBtn = document.getElementById('edit-profile-btn');
+           const closeBtn = document.getElementById('close-modal');
+           const cancelBtn = document.getElementById('cancel-edit');
+           
+           editBtn.addEventListener('click', function() {
+               // Preencher o formulário de edição com os dados atuais
+               fillEditForm();
+               modal.style.display = 'block';
+           });
+           
+           closeBtn.addEventListener('click', function() {
+               modal.style.display = 'none';
+           });
+           
+           cancelBtn.addEventListener('click', function() {
+               modal.style.display = 'none';
+           });
+           
+           // Fechar o modal ao clicar fora dele
+           window.addEventListener('click', function(event) {
+               if (event.target === modal) {
+                   modal.style.display = 'none';
+               }
+           });
+           
+           // Manipular o formulário de edição
+           document.getElementById('edit-profile-form').addEventListener('submit', function(e) {
+               e.preventDefault();
+               updateProfile();
+           });
+           
+           // Formatação de telefone
+           const phoneInput = document.getElementById('edit-phone');
+           if (phoneInput) {
+               phoneInput.addEventListener('input', function(e) {
+                   let value = e.target.value.replace(/\D/g, '');
+                   
+                   if (value.length <= 11) {
+                       if (value.length > 2) {
+                           value = `(${value.substring(0, 2)}) ${value.substring(2)}`;
+                       }
+                       if (value.length > 10) {
+                           value = `${value.substring(0, 10)}-${value.substring(10)}`;
+                       }
+                   }
+                   
+                   e.target.value = value;
+               });
+           }
+       });
+       
+       // Função para carregar dados do perfil do usuário
+       async function loadUserProfile() {
+           try {
+               const token = localStorage.getItem('token');
+               
+               const response = await fetch('/api/profile', {
+                   method: 'GET',
+                   headers: {
+                       'Authorization': `Bearer ${token}`,
+                       'Content-Type': 'application/json'
+                   }
+               });
+               
+               const data = await response.json();
+               
+               if (data.success) {
+                   // Esconder o indicador de carregamento
+                   document.getElementById('loading-profile').style.display = 'none';
+                   
+                   // Mostrar os dados do perfil
+                   document.getElementById('profile-data').style.display = 'block';
+                   
+                   // Preencher todos os campos do perfil
+                   fillUserProfile(data.user);
+                   
+                   // Atualizar os dados no localStorage para sincronização
+                   const currentUser = JSON.parse(localStorage.getItem('user')) || {};
+                   localStorage.setItem('user', JSON.stringify({
+                       ...currentUser,
+                       name: data.user.name,
+                       email: data.user.email,
+                       department: data.user.department,
+                       position: data.user.position
+                   }));
+               } else {
+                   console.error('Erro ao carregar perfil:', data.message);
+                   document.getElementById('loading-profile').style.display = 'none';
+                   alert('Erro ao carregar dados do perfil. Por favor, tente novamente mais tarde.');
+               }
+           } catch (error) {
+               console.error('Erro ao comunicar com o servidor:', error);
+               document.getElementById('loading-profile').style.display = 'none';
+               alert('Erro de comunicação com o servidor. Por favor, verifique sua conexão e tente novamente.');
+           }
+       }
+       
+       // Função para preencher dados básicos do usuário
+       function fillBasicUserInfo(userInfo) {
+           // Nome na barra superior
+           document.getElementById('user-name').textContent = userInfo.name;
+           
+           // Nome e cargo no cabeçalho do perfil
+           document.querySelector('.profile-name').textContent = userInfo.name;
+           if (userInfo.position) {
+               document.querySelector('.profile-role').textContent = userInfo.position;
+           } else if (userInfo.role) {
+               document.querySelector('.profile-role').textContent = 
+                   userInfo.role === 'admin' ? 'Administrador' : 'Usuário';
+           }
+       }
+       
+       // Função para preencher todos os campos do perfil
+       function fillUserProfile(user) {
+           // Cabeçalho do perfil
+           document.querySelector('.profile-name').textContent = user.name;
+           document.querySelector('.profile-role').textContent = user.position || 
+               (user.role === 'admin' ? 'Administrador' : 'Usuário');
+           
+           // Seção de informações pessoais
+           document.getElementById('profile-name').textContent = user.name || 'Não informado';
+           document.getElementById('profile-email').textContent = user.email || 'Não informado';
+           document.getElementById('profile-phone').textContent = user.phone || 'Não informado';
+           document.getElementById('profile-city').textContent = user.city || 'Não informado';
+           document.getElementById('profile-state').textContent = user.state || 'Não informado';
+           
+           // Seção de informações profissionais
+           document.getElementById('profile-department').textContent = user.department || 'Não informado';
+           document.getElementById('profile-position').textContent = user.position || 'Não informado';
+           document.getElementById('profile-employee-id').textContent = user.employeeId || 'Não informado';
+           document.getElementById('profile-company-sector').textContent = user.companySector || 'Não informado';
+           // Você também pode atualizar as estatísticas com dados reais se tiver essa informação
+        }
+        
+        // Função para preencher o formulário de edição com os dados atuais
+        function fillEditForm() {
+            // Obter os valores atuais do DOM
+            const name = document.getElementById('profile-name').textContent;
+            const email = document.getElementById('profile-email').textContent;
+            const phone = document.getElementById('profile-phone').textContent;
+            const city = document.getElementById('profile-city').textContent;
+            const state = document.getElementById('profile-state').textContent;
+            const department = document.getElementById('profile-department').textContent;
+            const position = document.getElementById('profile-position').textContent;
+            const employeeId = document.getElementById('profile-employee-id').textContent;
+            const companySector = document.getElementById('profile-company-sector').textContent;
+            
+            // Preencher o formulário
+            document.getElementById('edit-name').value = name !== 'Não informado' ? name : '';
+            document.getElementById('edit-email').value = email !== 'Não informado' ? email : '';
+            document.getElementById('edit-phone').value = phone !== 'Não informado' ? phone : '';
+            document.getElementById('edit-city').value = city !== 'Não informado' ? city : '';
+            document.getElementById('edit-department').value = department !== 'Não informado' ? department : '';
+            document.getElementById('edit-position').value = position !== 'Não informado' ? position : '';
+            document.getElementById('edit-employee-id').value = employeeId !== 'Não informado' ? employeeId : '';
+            document.getElementById('edit-company-sector').value = companySector !== 'Não informado' ? companySector : '';
+            
+            // Selecionar o estado no dropdown
+            if (state !== 'Não informado') {
+                const stateSelect = document.getElementById('edit-state');
+                for (let i = 0; i < stateSelect.options.length; i++) {
+                    if (stateSelect.options[i].value === state) {
+                        stateSelect.selectedIndex = i;
+                        break;
+                    }
+                }
+            }
+            
+            // Limpar mensagens de erro e sucesso
+            document.getElementById('edit-error').style.display = 'none';
+            document.getElementById('edit-success').style.display = 'none';
+        }
+        
+        // Função para atualizar o perfil
+        async function updateProfile() {
+            try {
+                const token = localStorage.getItem('token');
+                const form = document.getElementById('edit-profile-form');
+                
+                // Criar objeto com os dados do formulário
+                const userData = {
+                    name: form.elements['name'].value,
+                    phone: form.elements['phone'].value,
+                    gender: form.elements['gender'].value,
+                    city: form.elements['city'].value,
+                    state: form.elements['state'].value,
+                    department: form.elements['department'].value,
+                    position: form.elements['position'].value,
+                    employeeId: form.elements['employeeId'].value,
+                    companySector: form.elements['companySector'].value,
+                };
+                
+                const response = await fetch('/api/profile', {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(userData)
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Mostrar mensagem de sucesso
+                    const successMsg = document.getElementById('edit-success');
+                    successMsg.textContent = 'Perfil atualizado com sucesso!';
+                    successMsg.style.display = 'block';
+                    
+                    // Atualizar os dados exibidos
+                    if (data.user) {
+                        fillUserProfile(data.user);
+                    } else {
+                        // Se não receber o usuário atualizado, recarrega do servidor
+                        await loadUserProfile();
+                    }
+                    
+                    // Fechar o modal após 1 segundo
+                    setTimeout(() => {
+                        document.getElementById('edit-profile-modal').style.display = 'none';
+                    }, 1000);
+                } else {
+                    // Mostrar mensagem de erro
+                    const errorMsg = document.getElementById('edit-error');
+                    errorMsg.textContent = data.message || 'Erro ao atualizar perfil';
+                    errorMsg.style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Erro ao atualizar perfil:', error);
+                
+                // Mostrar mensagem de erro
+                const errorMsg = document.getElementById('edit-error');
+                errorMsg.textContent = 'Erro de comunicação com o servidor';
+                errorMsg.style.display = 'block';
+            }
+        }
+    </script>
+</body>
+</html>
